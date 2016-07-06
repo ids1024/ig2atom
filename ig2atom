@@ -10,11 +10,12 @@ import feedgenerator
 
 session_cookie = "sessionid=" + sys.argv[1]
 ig_regex = re.escape('<script type="text/javascript">window._sharedData = ') + r'(\{.*\})' +re.escape(';</script>')
+ig_url = "https://www.instagram.com"
 
 opener = urllib.request.build_opener()
 opener.addheaders.append(('Cookie', session_cookie))
 
-page = opener.open("https://www.instagram.com").read().decode()
+page = opener.open(ig_url).read().decode()
 
 m = re.search(ig_regex, page)
 sharedData = json.loads(m.group(1))
@@ -23,19 +24,19 @@ sharedData = json.loads(m.group(1))
 media = sharedData['entry_data']['FeedPage'][0]['feed']['media']
 #page_info = media['page_info']
 
-feed = feedgenerator.Atom1Feed("Instagram", "https://www.instagram.com", "")
+feed = feedgenerator.Atom1Feed("Instagram", ig_url, "")
 
 for i in media['nodes']:
     location = i['location']
     location_link = ''
     if location:
-        location_url = "https://www.instagram.com/explore/locations/" + location['id']
+        location_url = ig_url + "/explore/locations/" + location['id']
         location_link = '<p>Location: <a href="' + location_url + '">' + location['name'] + r'<\a><\p>'
 
     tagged = [j['user']['username'] for j in i['usertags']['nodes']]
     tagged_html = ''
     if tagged:
-        tagged_links = ['<a href="https://www.instagram.com/"' + j + '>' + j + r'<\a>' for j in tagged]
+        tagged_links = ['<a href="' + ig_url + '"' + j + '>' + j + r'<\a>' for j in tagged]
         tagged_html = '<p> Tagged: ' + ', '.join(tagged_links) + r'<\p>'
     date = datetime.datetime.fromtimestamp(i['date'])
     src = i['display_src']
@@ -44,7 +45,7 @@ for i in media['nodes']:
     username = i['owner']['username']
     full_name = i['owner']['full_name'] or ''
     profile_pic_url = i['owner']['profile_pic_url']
-    user_url = "https://www.instagram.com/" + username
+    user_url = ig_url + "/" + username
     author = username + ' (' + full_name + ')'
 
     title = username + ': ' + caption
