@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+
+import urllib.request
+import json
+import re
+import sys
+import datetime
+
+import feedgenerator
+
+session_cookie = "sessionid=" + sys.argv[1]
+ig_regex = re.escape('<script type="text/javascript">window._sharedData = ') + r'(\{.*\})' +re.escape(';</script>')
+
+opener = urllib.request.build_opener()
+opener.addheaders.append(('Cookie', session_cookie))
+
+page = opener.open("https://www.instagram.com").read().decode()
+
+m = re.search(ig_regex, page)
+sharedData = json.loads(m.group(1))
+
+#print(sharedData['entry_data']['FeedPage'][0]['suggestedUsersList'])
+media = sharedData['entry_data']['FeedPage'][0]['feed']['media']
+#page_info = media['page_info']
+
+feed = feedgenerator.Atom1Feed("Instagram", "https://www.instagram.com", "")
+
+for i in media['nodes']:
+    location = i['location']
+    location_link = ''
+    if location:
+        location_url = "https://www.instagram.com/explore/locations/" + location['id']
+        location_link = '<p>Location: <a href="' + location_url + '">' + location['name'] + r'<\a><\p>'
+
+    tagged = [j['user']['username'] for j in i['usertags']['nodes']]
+    tagged_html = ''
+    if tagged:
+        tagged_links = ['<a href="https://www.instagram.com/"' + j + '>' + j + r'<\a>' for j in tagged]
+        tagged_html = '<p> Tagged: ' + ', '.join(tagged_links) + r'<\p>'
+    date = datetime.datetime.fromtimestamp(i['date'])
+    src = i['display_src']
+    caption = i.get('caption', '')
+
+    username = i['owner']['username']
+    full_name = i['owner']['full_name'] or ''
+    profile_pic_url = i['owner']['profile_pic_url']
+    user_url = "https://www.instagram.com/" + username
+    author = username + ' (' + full_name + ')'
+
+    title = username + ': ' + caption
+    #if len(caption) > 50: # Arbitrarily chosen number
+    #    title = title[:47] + '...'
+
+    img = '<p><img src="' + src + '"/></p>'
+
+    content = location_link + tagged_html + img + '<p>'+ caption + '<\p>'
+
+    feed.add_item(title, src, caption, author_name=author, author_link=user_url, pubdate=date, content=content)
+
+print(feed.writeString('utf8'))
