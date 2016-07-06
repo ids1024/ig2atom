@@ -46,7 +46,9 @@ for i in media['nodes']:
     full_name = i['owner']['full_name'] or ''
     profile_pic_url = i['owner']['profile_pic_url']
     user_url = ig_url + "/" + username
-    author = username + ' (' + full_name + ')'
+    author = username
+    if full_name:
+        author += ' (' + full_name + ')'
 
     title = username + ': ' + caption
     #if len(caption) > 50: # Arbitrarily chosen number
