@@ -17,7 +17,7 @@ ig_url = "https://www.instagram.com"
 def cdn_fix(url):
     url = re.sub(r'https://scontent-.*\.cdninstagram.com', 'https://scontent.cdninstagram.com', url)
     scheme, netloc, path, _, _ = urllib.parse.urlsplit(url)
-    url = scheme + '://' + netloc + '/' + path
+    url = scheme + '://' + netloc + path
     return url
 
 opener = urllib.request.build_opener()
