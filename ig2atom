@@ -48,7 +48,11 @@ for i in media['nodes']:
         tagged_html = '<p> Tagged: ' + ', '.join(tagged_links) + r'<\p>'
     date = datetime.datetime.fromtimestamp(i['date'])
     src = cdn_fix(i['display_src'])
+    video_url = i.get('video_url')
+    if video_url:
+        video_url = cdn_fix(video_url)
     caption = i.get('caption', '')
+    url = video_url or src
 
     username = i['owner']['username']
     full_name = i['owner']['full_name'] or ''
@@ -66,6 +70,6 @@ for i in media['nodes']:
 
     content = location_link + tagged_html + img + '<p>'+ caption + '<\p>'
 
-    feed.add_item(title, src, caption, author_name=author, author_link=user_url, pubdate=date, content=content)
+    feed.add_item(title, url, caption, author_name=author, author_link=user_url, pubdate=date, content=content)
 
 print(feed.writeString('utf8'))
