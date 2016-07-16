@@ -35,6 +35,8 @@ media = sharedData['entry_data']['FeedPage'][0]['feed']['media']
 feed = feedgenerator.Atom1Feed("Instagram", ig_url, "")
 
 for i in media['nodes']:
+    id_ = i['id']
+
     location = i['location']
     location_link = ''
     if location:
@@ -70,6 +72,6 @@ for i in media['nodes']:
 
     content = location_link + tagged_html + img + '<p>'+ caption + '<\p>'
 
-    feed.add_item(title, url, caption, author_name=author, author_link=user_url, pubdate=date, content=content)
+    feed.add_item(title, url, caption, author_name=author, author_link=user_url, pubdate=date, content=content, unique_id='instagram:'+id_)
 
 print(feed.writeString('utf8'))
