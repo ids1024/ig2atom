@@ -48,12 +48,11 @@ for i in media['nodes']:
     if tagged:
         tagged_links = ['<a href="' + ig_url + '/' + j + '">' + j + r'<\a>' for j in tagged]
         tagged_html = '<p> Tagged: ' + ', '.join(tagged_links) + r'<\p>'
-    date = datetime.datetime.fromtimestamp(i['date'])
+
     src = cdn_fix(i['display_src'])
     video_url = i.get('video_url')
     if video_url:
         video_url = cdn_fix(video_url)
-    caption = i.get('caption', '')
     url = video_url or src
 
     username = i['owner']['username']
@@ -64,12 +63,14 @@ for i in media['nodes']:
     if full_name:
         author += ' (' + full_name + ')'
 
+    caption = i.get('caption', '')
+    date = datetime.datetime.fromtimestamp(i['date'])
+
     title = username + ': ' + caption
     #if len(caption) > 50: # Arbitrarily chosen number
     #    title = title[:47] + '...'
 
     img = '<p><img src="' + src + '"/></p>'
-
     content = location_link + tagged_html + img + '<p>'+ caption + '<\p>'
 
     feed.add_item(title, url, caption, author_name=author, author_link=user_url, pubdate=date, content=content, unique_id='instagram:'+id_)
