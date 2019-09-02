@@ -42,13 +42,13 @@ def process_graphimage(i):
     location_link = ''
     if location:
         location_url = ig_url + "/explore/locations/" + location['id']
-        location_link = '<p>Location: <a href="' + location_url + '">' + location['name'] + r'<\a><\p>'
+        location_link = f'<p>Location: <a href="{location_url}">{location["name"]}</a></p>'
 
     tagged = (j['node']['user']['username'] for j in i['edge_media_to_tagged_user']['edges'])
     tagged_html = ''
     if tagged:
-        tagged_links = ['<a href="' + ig_url + '/' + j + '">' + j + r'<\a>' for j in tagged]
-        tagged_html = '<p> Tagged: ' + ', '.join(tagged_links) + r'<\p>'
+        tagged_links = [f'<a href="{ig_url}/{j}">{j}</a>' for j in tagged]
+        tagged_html = '<p> Tagged: ' + ', '.join(tagged_links) + r'</p>'
 
     src = cdn_fix(i['display_url'])
     video_url = i.get('video_url')
@@ -74,8 +74,8 @@ def process_graphimage(i):
     #if len(caption) > 50: # Arbitrarily chosen number
     #    title = title[:47] + '...'
 
-    img = '<p><img src="' + src + '"/></p>'
-    content = location_link + tagged_html + img + '<p>'+ caption + '<\p>'
+    img = f'<p><img src="{src}"/></p>'
+    content = location_link + tagged_html + img + '<p>'+ caption + '</p>'
 
     feed.add_item(title, url, caption, author_name=author, author_link=user_url, pubdate=date, content=content, unique_id='instagram:'+id_)
 
