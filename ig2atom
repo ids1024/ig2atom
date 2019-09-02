@@ -17,8 +17,8 @@ ig_url = "https://www.instagram.com"
 
 # Prevents image url from changing
 def cdn_fix(url):
-    url = re.sub(r'https://scontent-.*\.cdninstagram.com', 'https://scontent.cdninstagram.com', url)
     scheme, netloc, path, _, _ = urllib.parse.urlsplit(url)
+    netloc = re.sub(r'scontent-.*\.cdninstagram\.com', 'scontent.cdninstagram.com', netloc)
     url = scheme + '://' + netloc + path
     return url
 
@@ -32,10 +32,9 @@ ig_feed = json.loads(m.group(1))
 
 feed = feedgenerator.Atom1Feed("Instagram", ig_url, "")
 
-nodes = (i["node"] for i in ig_feed["user"]["edge_web_feed_timeline"]["edges"])
-for i in nodes: 
-    if i['__typename'] != 'GraphImage':
-        continue
+def process_graphimage(i):
+    if not 'owner' in i:
+        return
 
     id_ = i['id']
 
@@ -65,7 +64,7 @@ for i in nodes:
     if full_name:
         author += ' (' + full_name + ')'
 
-    caption = i.get('caption', '')
+    caption = i["edge_media_to_caption"]["edges"][0]["node"]["text"]
     date = datetime.datetime.fromtimestamp(i['taken_at_timestamp'])
 
     title = username + ': '
@@ -79,5 +78,13 @@ for i in nodes:
     content = location_link + tagged_html + img + '<p>'+ caption + '<\p>'
 
     feed.add_item(title, url, caption, author_name=author, author_link=user_url, pubdate=date, content=content, unique_id='instagram:'+id_)
+
+def process_edges(edges):
+    for i in edges:
+        node = i['node']
+        if node['__typename'] in ('GraphImage', 'GraphSidecar'):
+            process_graphimage(node)
+
+process_edges(ig_feed["user"]["edge_web_feed_timeline"]["edges"])
 
 print(feed.writeString('utf8'))
