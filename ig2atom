@@ -50,11 +50,15 @@ def process_graphimage(i):
         tagged_links = [f'<a href="{ig_url}/{j}">{j}</a>' for j in tagged]
         tagged_html = '<p> Tagged: ' + ', '.join(tagged_links) + r'</p>'
 
-    src = cdn_fix(i['display_url'])
-    video_url = i.get('video_url')
-    if video_url:
-        video_url = cdn_fix(video_url)
-    url = video_url or src
+    url = i['display_url']
+    imgs = ''
+    if 'edge_sidecar_to_children' in i:
+        for j in i['edge_sidecar_to_children']['edges']:
+            j_url = j['node']['display_url']
+            imgs += f'<p><img src="{j_url}"/></p>'
+    else:
+        imgs = f'<p><img src="{url}"/></p>'
+    #video_url = i.get('video_url') TODO
 
     username = i['owner']['username']
     full_name = i['owner']['full_name'] or ''
@@ -68,14 +72,13 @@ def process_graphimage(i):
     date = datetime.datetime.fromtimestamp(i['taken_at_timestamp'])
 
     title = username + ': '
-    if video_url:
-        title += '[video] '
+    #if video_url:
+    #    title += '[video] '
     title += caption
     #if len(caption) > 50: # Arbitrarily chosen number
     #    title = title[:47] + '...'
 
-    img = f'<p><img src="{src}"/></p>'
-    content = location_link + tagged_html + img + '<p>'+ caption + '</p>'
+    content = location_link + tagged_html + imgs + '<p>'+ caption + '</p>'
 
     feed.add_item(title, url, caption, author_name=author, author_link=user_url, pubdate=date, content=content, unique_id='instagram:'+id_)
 
