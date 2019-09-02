@@ -10,7 +10,9 @@ import datetime
 import feedgenerator
 
 session_cookie = "sessionid=" + sys.argv[1]
-ig_regex = re.escape('<script type="text/javascript">window._sharedData = ') + r'(\{.*\})' +re.escape(';</script>')
+ig_regex = re.escape('<script type="text/javascript">window.__additionalDataLoaded(\'feed\',') + r'(\{.*\})' +re.escape(');</script>')
+
+
 ig_url = "https://www.instagram.com"
 
 # Prevents image url from changing
@@ -26,15 +28,15 @@ opener.addheaders.append(('Cookie', session_cookie))
 page = opener.open(ig_url).read().decode()
 
 m = re.search(ig_regex, page)
-sharedData = json.loads(m.group(1))
-
-#print(sharedData['entry_data']['FeedPage'][0]['suggestedUsersList'])
-media = sharedData['entry_data']['FeedPage'][0]['feed']['media']
-#page_info = media['page_info']
+ig_feed = json.loads(m.group(1))
 
 feed = feedgenerator.Atom1Feed("Instagram", ig_url, "")
 
-for i in media['nodes']:
+nodes = (i["node"] for i in ig_feed["user"]["edge_web_feed_timeline"]["edges"])
+for i in nodes: 
+    if i['__typename'] != 'GraphImage':
+        continue
+
     id_ = i['id']
 
     location = i['location']
@@ -43,13 +45,13 @@ for i in media['nodes']:
         location_url = ig_url + "/explore/locations/" + location['id']
         location_link = '<p>Location: <a href="' + location_url + '">' + location['name'] + r'<\a><\p>'
 
-    tagged = [j['user']['username'] for j in i['usertags']['nodes']]
+    #tagged = [j['user']['username'] for j in i['usertags']['nodes']]
     tagged_html = ''
-    if tagged:
-        tagged_links = ['<a href="' + ig_url + '/' + j + '">' + j + r'<\a>' for j in tagged]
-        tagged_html = '<p> Tagged: ' + ', '.join(tagged_links) + r'<\p>'
+    #if tagged:
+    #    tagged_links = ['<a href="' + ig_url + '/' + j + '">' + j + r'<\a>' for j in tagged]
+    #    tagged_html = '<p> Tagged: ' + ', '.join(tagged_links) + r'<\p>'
 
-    src = cdn_fix(i['display_src'])
+    src = cdn_fix(i['display_url'])
     video_url = i.get('video_url')
     if video_url:
         video_url = cdn_fix(video_url)
@@ -64,7 +66,7 @@ for i in media['nodes']:
         author += ' (' + full_name + ')'
 
     caption = i.get('caption', '')
-    date = datetime.datetime.fromtimestamp(i['date'])
+    date = datetime.datetime.fromtimestamp(i['taken_at_timestamp'])
 
     title = username + ': '
     if video_url:
