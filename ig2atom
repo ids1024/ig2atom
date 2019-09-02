@@ -44,11 +44,11 @@ def process_graphimage(i):
         location_url = ig_url + "/explore/locations/" + location['id']
         location_link = '<p>Location: <a href="' + location_url + '">' + location['name'] + r'<\a><\p>'
 
-    #tagged = [j['user']['username'] for j in i['usertags']['nodes']]
+    tagged = (j['node']['user']['username'] for j in i['edge_media_to_tagged_user']['edges'])
     tagged_html = ''
-    #if tagged:
-    #    tagged_links = ['<a href="' + ig_url + '/' + j + '">' + j + r'<\a>' for j in tagged]
-    #    tagged_html = '<p> Tagged: ' + ', '.join(tagged_links) + r'<\p>'
+    if tagged:
+        tagged_links = ['<a href="' + ig_url + '/' + j + '">' + j + r'<\a>' for j in tagged]
+        tagged_html = '<p> Tagged: ' + ', '.join(tagged_links) + r'<\p>'
 
     src = cdn_fix(i['display_url'])
     video_url = i.get('video_url')
