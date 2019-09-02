@@ -17,9 +17,9 @@ ig_url = "https://www.instagram.com"
 
 # Prevents image url from changing
 def cdn_fix(url):
-    scheme, netloc, path, _, _ = urllib.parse.urlsplit(url)
-    netloc = re.sub(r'scontent-.*\.cdninstagram\.com', 'scontent.cdninstagram.com', netloc)
-    url = scheme + '://' + netloc + path
+    #scheme, netloc, path, _, _ = urllib.parse.urlsplit(url)
+    #netloc = re.sub(r'scontent-.*\.cdninstagram\.com', 'scontent.cdninstagram.com', netloc)
+    #url = scheme + '://' + netloc + path
     return url
 
 opener = urllib.request.build_opener()
